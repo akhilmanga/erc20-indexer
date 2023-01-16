@@ -10,6 +10,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { Alchemy, Network, Utils } from 'alchemy-sdk';
+import { ethers } from 'ethers';
 import { useState } from 'react';
 
 function App() {
@@ -20,7 +21,7 @@ function App() {
 
   async function getTokenBalance() {
     const config = {
-      apiKey: '<-- COPY-PASTE YOUR ALCHEMY API KEY HERE -->',
+      apiKey: 'p2WVLBT3P-NdCrkrGR6YOCDX6Qn-BnWS',
       network: Network.ETH_MAINNET,
     };
 
@@ -41,6 +42,38 @@ function App() {
     setTokenDataObjects(await Promise.all(tokenDataPromises));
     setHasQueried(true);
   }
+
+  const [walletAddress, setWalletAddress] = useState("");
+
+  async function requestAccount() {
+    console.log('Requesting account....');
+
+
+    if (window.ethereum) {
+      console.log('detected');
+
+      try {
+        const accounts = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
+        setWalletAddress(accounts[0]);
+      } catch (error) {
+        console.log('Error connecting....');
+      }
+
+    } else {
+      alert('Metamask is not detected');
+    }
+  }
+
+  async function ConnectWallet() {
+    if (typeof window.ethereum !== 'undefined') {
+      await requestAccount();
+
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+    }
+  }
+
   return (
     <Box w="100vw">
       <Center>
@@ -49,7 +82,7 @@ function App() {
           justifyContent="center"
           flexDirection={'column'}
         >
-          <Heading mb={0} fontSize={36}>
+          <Heading mb={0} fontSize={44}>
             ERC-20 Token Indexer
           </Heading>
           <Text>
@@ -64,23 +97,21 @@ function App() {
         alignItems="center"
         justifyContent={'center'}
       >
-        <Heading mt={42}>
-          Get all the ERC-20 token balances of this address:
-        </Heading>
-        <Input
-          onChange={(e) => setUserAddress(e.target.value)}
-          color="black"
-          w="600px"
-          textAlign="center"
-          p={4}
-          bgColor="white"
-          fontSize={24}
-        />
-        <Button fontSize={20} onClick={getTokenBalance} mt={36} bgColor="blue">
+
+        <Button
+          fontSize={18} onClick={requestAccount}
+          mt={34} bgColor="solid black">
+          Connect Wallet
+        </Button>
+
+        <h3>Wallet Address : {walletAddress} </h3>
+
+        <Button fontSize={20} onClick={getTokenBalance} mt={36} bgColor="solid black">
           Check ERC-20 Token Balances
         </Button>
 
         <Heading my={36}>ERC-20 token balances:</Heading>
+
 
         {hasQueried ? (
           <SimpleGrid w={'90vw'} columns={4} spacing={24}>
@@ -89,7 +120,7 @@ function App() {
                 <Flex
                   flexDir={'column'}
                   color="white"
-                  bg="blue"
+                  bg="solid black"
                   w={'20vw'}
                   key={e.id}
                 >
@@ -109,7 +140,7 @@ function App() {
             })}
           </SimpleGrid>
         ) : (
-          'Please make a query! This may take a few seconds...'
+          'Please wait! , This may take a few seconds....'
         )}
       </Flex>
     </Box>
